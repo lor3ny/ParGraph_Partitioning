@@ -4,9 +4,9 @@ Distributed implementation of a multilevel k-way graph partitioning algorithm.
 ### Path of the project
 
 1. Understanding and comprehension of multilevel k-way algorithm.
-  1. Coarsening phase
-  2. Partitioning phase
-  3. Uncoarsing and refining phase
+  - Coarsening phase
+  - Partitioning phase
+  - Uncoarsing and refining phase
 2. Basic sequential implementation without a refining heuristic, try to understand which rule to follow during coarsening phase
 3. Basic sequential implementation with a refining heuristic, try to understand which rule to follow during uncoarsening phase
 4. Benchmarking and understanding of parallel optimizations in a distributed fashion (MPI implementation)
