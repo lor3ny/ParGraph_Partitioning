@@ -1,5 +1,8 @@
+#include <algorithm>
 #include <iostream>
 #include <cstdlib>
+#include <tuple>
+#include <utility>
 #include <vector>
 
 #define NODES_COUNT 10
@@ -8,80 +11,74 @@
 
 using namespace std;
 
-// is it better to use a adjacency matrix and select a well known memory strategy or adjacency lists?
+struct Graph{
+    vector<int> values; // the first NODES_COUNT values are the diagonal, the others are the non-zero values row-wise
+    vector<int> bindCol; //the first NODES_COUNT values are the start of the row in the values array, the others are the column values
+};
 
-bool IsThere(vector<int> collection, int elem){
 
-    for(int e : collection){
-        if(e == elem){
-            return true;
-        }
-    }
-
-    return false;
+void GenerateGraph(int** graph, int n, float sparsity){
+    return;
 }
 
-void generateGraph(vector<int>* nodes, int nodesCount, int minOutedges){
 
-    // A dynamic structure is needed
-    //array of lists
-    for(int i=0; i<nodesCount; i++){
+void MSRcompression(int** graph, int size, Graph& MSRgraph){
 
-        while(nodes[i].size() < minOutedges){
+    MSRgraph.values = {};
+    MSRgraph.bindCol = {};
 
-            // Pick random integer between 0 and nodesCount
-            int newEdge = rand() % nodesCount; 
+    // COPY DIAGONAL
+    for(int ij = 0; ij<size; ij++){
+        MSRgraph.values.push_back(graph[ij][ij]);
+    }
 
-            if(newEdge == i){
+    vector<int> columns = {};
+    for(int i = 0; i<size; i++){
+        bool firstFound = false;
+        for(int j = 0; j<size; j++){
+            if(i == j){
                 continue;
-            } 
-
-            if(IsThere(nodes[i],newEdge)){
+            }
+            if(graph[i][j] == 0){
                 continue;
             }
 
-            nodes[i].push_back(newEdge);
-            nodes[newEdge].push_back(i); 
+            int idxValue = MSRgraph.values.size();
+            MSRgraph.values.push_back(graph[i][j]);
+            columns.push_back(j);
+            if(!firstFound)
+                MSRgraph.bindCol.push_back(idxValue);
+
+            firstFound = true;
         }
+    }
+
+    for(int& column : columns){
+        MSRgraph.bindCol.push_back(column);
     }
 }
 
-void PrintGraph(vector<int>* graph, int nodes){
-    cout << "UNDIRECTED GRAPH: " << endl;
-    for(int i = 0; i<nodes; i++){
-        cout << "node " << i << ": ";
-        for (int j = 0; j<graph[i].size(); j++){
-            cout << graph[i][j] << " ";
-        }
-        cout << endl;
-    }
+void GraphCoarsening(){
+    return;
 }
 
+void GraphPartitioning(){
+    return;
+}
 
-void GraphCoarsening(vector<int>* graph){
-    
-    int halfNodesCount = NODES_COUNT/2;
-
-    vector<int> subGraph[halfNodesCount];
-
-
-    for(int i = 0; i<halfNodesCount; i++){
-        int connNode = graph[i].back(); // Take one node following an heuristics
-
-        // Create a new node that is the union between the two selected nodes
-
-        // The problem are:
-        // - which is the most useful structure to create merged nodes? a dictionary?
-        // We can create a subgraph storing only the first node and then i create an association list
-    }
-
+void GraphUncoarsening(){
+    return;
 }
 
 int main(){
-
     // Graph creation
-    vector<int> graph[NODES_COUNT];
-    generateGraph(graph, NODES_COUNT, MIN_EDGES_COUNT);
+    int** graph;
+    vector<int> mergedNodes[NODES_COUNT/2]; // That means that NODES_COUNT is even and that the coarsening is going to reduce to 1/2 the graph
+    vector<int> coarsedGraph[NODES_COUNT/2]; // That means that NODES_COUNT is even and that the coarsening is going to reduce to 1/2 the graph
+    GenerateGraph(graph, NODES_COUNT, 0.1f);
+
+    Graph   MSRgraph;
+    MSRcompression(graph, NODES_COUNT, MSRgraph);
 
     // Graph coarsening
 
@@ -90,6 +87,5 @@ int main(){
     // Graph uncoarsening
 
     // Print results
-    PrintGraph(graph, NODES_COUNT);
 
 }
