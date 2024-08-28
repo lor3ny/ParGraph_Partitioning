@@ -1,10 +1,6 @@
-#include <algorithm>
 #include <iostream>
 #include <cstdlib>
-#include <iterator>
-#include <tuple>
-#include <utility>
-#include <vector>
+#include "MSR.hpp"
 
 #define NODES_COUNT 20
 #define MIN_EDGES_COUNT 5
@@ -12,11 +8,19 @@
 
 using namespace std;
 
-struct Graph{
-    vector<int> values; // the first NODES_COUNT values are the diagonal, the others are the non-zero values row-wise
-    vector<int> bindCol; //the first NODES_COUNT values are the start of the row in the values array, the others are the column values
-    int size;
-};
+// ----------------------------------------------------------
+// DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG
+// ----------------------------------------------------------
+
+bool compareMat(int (&a)[NODES_COUNT][NODES_COUNT], int (&b)[NODES_COUNT][NODES_COUNT]){
+    for(int i = 0; i<NODES_COUNT; i++){
+        for(int j = 0; j<NODES_COUNT; j++)
+        {
+            if(a[i][j] != b[i][j])  {return false;}
+        }
+    }
+    return true;
+}
 
 void PrintGraph(int (&g)[NODES_COUNT][NODES_COUNT], int size){
     cout << "STARTING GRAPH N=" << size << endl;
@@ -30,61 +34,56 @@ void PrintGraph(int (&g)[NODES_COUNT][NODES_COUNT], int size){
     cout << endl;
 }
 
-void PrintGraphMSR(Graph& g){
-    cout << "MSR GRAPH N=" << g.size << endl;
+// THE MAT IS ALREADY INITIALIZED WIT ALL ZEROS
+void MSRtoMat(MSR<NODES_COUNT>& msr, int (&mat)[NODES_COUNT][NODES_COUNT]){
+
+    // PRINT MSR
+    cout << "MSR MSR N=" << msr.GetSize() << endl;
     cout << "Values: ";
-    for(int& v : g.values)
+    for(int& v : msr.values)
         cout << v << " ";
     cout << endl;
     cout << "Bind: ";
-    for(int& b : g.bindCol)
+    for(int& b : msr.bindCol)
         cout << b << " ";
     cout << endl;
+    // PRINT MSR
 
-    
-    for(int i = 0; i<g.size; i++){
-        // col = i+(n)
-        int rowStart = g.bindCol[i];
-        int rowEnd = g.bindCol[i+1];
+
+    // col = i+(n)
+    for(int i = 0; i<NODES_COUNT; i++){
+        mat[i][i] = msr.values[i];
+    }
+
+    for(int i = 0; i<msr.GetSize(); i++){
+        int rowStart = msr.bindCol[i];
+        int rowEnd = msr.bindCol[i+1];
         if(rowStart == -1){
-            for(int k = 0; k<g.size; k++){
-                cout << 0 << " ";
-            }
-            cout << endl;
             continue;
         }
         if(rowEnd == -1){
-            rowEnd = g.bindCol[i+2];
+            rowEnd = msr.bindCol[i+2];
         }
 
-        int lastCol = 0;
         for(int j = rowStart; j < rowEnd; j++){
-            for(int k = lastCol; k < g.bindCol[j]; k++){
-                if(k==i)
-                    cout << g.values[i] << " ";
-                else
-                    cout << 0 << " ";
-            }
-            cout << g.values[j] << " ";
-            lastCol = g.bindCol[j]+1;
-
-            if(j == rowEnd-1){
-                for(int k = lastCol; k<g.size; k++){
-                    cout << 0 << " ";
-                }
-            }
+            mat[i][msr.bindCol[j]] = msr.values[j];
         }
-        cout << endl;
     }
-    cout << endl;
+
 }
 
-
-void GenerateGraph(int (&graph)[NODES_COUNT][NODES_COUNT], int n, float sparsity){
+// THE MAT IS ALREADY INITIALIZED WIT ALL ZEROS
+void GenerateGraphMat(int (&graph)[NODES_COUNT][NODES_COUNT], int n, float sparsity){
 
     for(int i = 0; i<NODES_COUNT; i++){
         for(int j = 0; j<NODES_COUNT; j++)
         {
+            // NO SELF-LOOPS CONDITION
+            if(i == j){
+                continue;
+            }
+
+            // UNDIRECTED GRAPH CONDITION
             if(graph[i][j] == 1){
                 continue;
             }
@@ -92,63 +91,26 @@ void GenerateGraph(int (&graph)[NODES_COUNT][NODES_COUNT], int n, float sparsity
             float occurrence = (rand() % 100)/100.0f;
             if(occurrence < sparsity){
                 graph[i][j] = 1;
-                graph[j][i] = 1;
-            } else {
-                graph[i][j] = 0;
+                graph[j][i] = 1; // UNDIRECTED GRAPH CONDITION
             }
         }
     }
-
-
     return;
 }
 
-// -1 flags that the row is a zero-row
-void MSRcompression(int (&graph)[NODES_COUNT][NODES_COUNT], int size, Graph& MSRgraph){
-    MSRgraph.values = {};
-    MSRgraph.bindCol = {};
-    MSRgraph.size = size;
+// ----------------------------------------------------------
+// DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG
+// ----------------------------------------------------------
 
-    // COPY DIAGONAL
-    for(int ij = 0; ij<size; ij++){
-        MSRgraph.values.push_back(graph[ij][ij]);
-    }
-    MSRgraph.values.push_back(-1);
 
-    vector<int> columns = {};
-    for(int i = 0; i<size; i++){
-        bool firstFound = false;
-        bool zeroRow = true;
-        for(int j = 0; j<size; j++){
-            if(i == j){
-                continue;
-            }
-            if(graph[i][j] == 0){
-                continue;
-            }
-
-            int idxValue = MSRgraph.values.size();
-            MSRgraph.values.push_back(graph[i][j]);
-            columns.push_back(j);
-            if(!firstFound)
-                MSRgraph.bindCol.push_back(idxValue);
-
-            firstFound = true;
-            zeroRow = false;
+void MSRGraphCoarsening(MSR<NODES_COUNT>& MSRgraph){
+    for(int i = 0; i<MSRgraph.GetSize(); i++){
+        /*
+        if(MSRgraph.coarsedBits[i]){
+            continue;
         }
-        if(zeroRow){
-            MSRgraph.bindCol.push_back(-1);
-        }
+        */
     }
-    MSRgraph.bindCol.push_back(MSRgraph.values.size());
-
-    for(int& column : columns){
-        MSRgraph.bindCol.push_back(column);
-    }
-}
-
-void GraphCoarsening(){
-    return;
 }
 
 void GraphPartitioning(){
@@ -161,13 +123,14 @@ void GraphUncoarsening(){
 
 int main(){
     // Graph creation
-    int graph[NODES_COUNT][NODES_COUNT];
+    int graph[NODES_COUNT][NODES_COUNT] = {0};
+    int convGraph[NODES_COUNT][NODES_COUNT] = {0};
     vector<int> mergedNodes[NODES_COUNT/2]; // That means that NODES_COUNT is even and that the coarsening is going to reduce to 1/2 the graph
     vector<int> coarsedGraph[NODES_COUNT/2]; // That means that NODES_COUNT is even and that the coarsening is going to reduce to 1/2 the graph
-    GenerateGraph(graph, NODES_COUNT, 0.1f);
+    GenerateGraphMat(graph, NODES_COUNT, 0.1f);
 
-    Graph MSRgraph;
-    MSRcompression(graph, NODES_COUNT, MSRgraph);
+    MSR<NODES_COUNT> MSRgraph;
+    MSRgraph.CompressGraphMat(graph);
 
     // Graph coarsening
 
@@ -177,5 +140,10 @@ int main(){
 
     // Print results
     PrintGraph(graph, NODES_COUNT);
-    PrintGraphMSR(MSRgraph);
+    MSRtoMat(MSRgraph, convGraph);
+    if(compareMat(graph, convGraph)){
+        cout << "MSR is working!" << endl;
+    } else {
+        cout << "MSR is not working!" << endl;
+    }
 }

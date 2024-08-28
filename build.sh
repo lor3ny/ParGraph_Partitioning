@@ -1,1 +1,1 @@
-g++ src/main.cpp -o build/pargraph
+g++ src/*.cpp -o build/pargraph
