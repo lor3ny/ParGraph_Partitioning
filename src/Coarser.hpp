@@ -1,8 +1,10 @@
 #pragma once
 
 #include <vector>
+#include <MSR.hpp>
 
 using namespace std;
+
 
 class Coarser {
 
@@ -11,7 +13,7 @@ private:
 
     int size;
     // When the coarser is used, it use this structure to take trake which node is already coarsed
-    vector<char> coarNodesBits;
+    vector<int> coarNodesBits;
     // element mergedNodes[i] correspond to all the nodes merged in node i
     vector<vector<int>> mergedNodes;
 
@@ -20,31 +22,65 @@ public:
     Coarser(int size){
         this->size = size;
         coarNodesBits[size] = 0;
-        mergedNodes[size] = {};
     }
 
-    void CoarsMSR(){
-        for(int i = 0; i<size; i++){
+    template<int N>
+    void CoarsMSR(MSR<N> graph){
 
+        for(int i = 0; i<msr.GetSize(); i++){
+            // Node alreade merged, skip
             if(coarNodesBits[i]){
-                // Node alreade merged, skip
                 continue;
             }
 
+            int rowStart = msr.bindCol[i];
+            int rowEnd = msr.bindCol[i+1];
+
+            // The node doesn't have out edges
+            if(rowStart == -1){
+                continue;
+            }
+            if(rowEnd == -1){
+                rowEnd = msr.bindCol[i+2];
+            }
+
+            //Iterate connections and select the node by the column, the value are always 1 so we don't have to check it
+            vector<vector<int>> groups;
+            for(int j = rowStart; j < rowEnd; j++){
+                if(coarNodesBits[j]){
+                    continue;
+                }
+                
+                // ------- TRIVIAL HEURISTIC -------- 
+                int masterNode = i;
+                int selectedNode = msr.bindCol[j]
+                coarNodesBits[masterNode] = 1;
+                coarNodesBits[selectedNode] = 1;
+                vector<int> groups = {masterNode, selectedNode};
+                groups.pushback(auxGroup); // We need to find a better solution to store the merged nodes
+                break;
+                // ------- TRIVIAL HEURISTIC --------
+            }
+
+            // once the groups are builded, build the msr
+
+        }
+
+        for(int i = 0; i<size; i++){
 
             // COARSENING
 
+            graph.
+
+
+            coarNodesBits[i] = 1;
 
         }
     }
 
-    // This function express the heuristic used by the coarser to choose which nodes coarse
-    void SelectTheNode(){
-
-    }
 
     void UncoarsMSR(){
-
+        // Let's see
     }
 
 };
