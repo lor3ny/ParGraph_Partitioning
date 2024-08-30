@@ -28,20 +28,28 @@ public:
     void CoarsMSR(MSR<N> graph){
 
         for(int i = 0; i<msr.GetSize(); i++){
+
+
+            int n = N;
+            MSR<n> newMSR;
+            newMSR.values[n+1] = {0};
+            newMSR.bindCol[n+1] = {0};
+
             // Node alreade merged, skip
             if(coarNodesBits[i]){
                 continue;
             }
 
-            int rowStart = msr.bindCol[i];
-            int rowEnd = msr.bindCol[i+1];
+            int rowStart = graph.bindCol[i];
+            int rowEnd = graph.bindCol[i+1];
 
             // The node doesn't have out edges
             if(rowStart == -1){
+                newMSR.bindCol[i] = -1;
                 continue;
             }
             if(rowEnd == -1){
-                rowEnd = msr.bindCol[i+2];
+                rowEnd = graph.bindCol[i+2];
             }
 
             //Iterate connections and select the node by the column, the value are always 1 so we don't have to check it
@@ -50,19 +58,32 @@ public:
                 if(coarNodesBits[j]){
                     continue;
                 }
-                
+
                 // ------- TRIVIAL HEURISTIC -------- 
                 int masterNode = i;
                 int selectedNode = msr.bindCol[j]
+
+                // Not possible in our configuration
+                if(selectedNode == masterNode){
+                    newMSR.values[selectedNode] = 1;
+                    break;
+                }
+
                 coarNodesBits[masterNode] = 1;
                 coarNodesBits[selectedNode] = 1;
-                vector<int> groups = {masterNode, selectedNode};
-                groups.pushback(auxGroup); // We need to find a better solution to store the merged nodes
                 break;
                 // ------- TRIVIAL HEURISTIC --------
             }
 
             // once the groups are builded, build the msr
+            for(auto& group : groups){
+                int chiefNode = group[0];
+                for(int k = 0; k < group.size(); k++){
+
+                    graph.
+
+                }
+            }
 
         }
 
