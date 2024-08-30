@@ -27,13 +27,16 @@ public:
     template<int N>
     void CoarsMSR(MSR<N> graph){
 
-        for(int i = 0; i<msr.GetSize(); i++){
+        vector<int> valuePointers;
+        int pointerCounter = 0;
+        for(int i = 0; i<graph.GetSize(); i++){
 
 
+            // DIMENSION AS A TEMPLATE MUST BE REMOVED
             int n = N;
-            MSR<n> newMSR;
-            newMSR.values[n+1] = {0};
-            newMSR.bindCol[n+1] = {0};
+            MSR<N> newMSR;
+            // newMSR.values
+            // newMSR.bindCol
 
             // Node alreade merged, skip
             if(coarNodesBits[i]){
@@ -52,51 +55,76 @@ public:
                 rowEnd = graph.bindCol[i+2];
             }
 
+            // ------- TRIVIAL HEURISTIC --------
+            int masterNode = i;
+            int selectedNode = -1;
+
             //Iterate connections and select the node by the column, the value are always 1 so we don't have to check it
-            vector<vector<int>> groups;
+            bool hasBeenSelected = false;
             for(int j = rowStart; j < rowEnd; j++){
                 if(coarNodesBits[j]){
                     continue;
                 }
-
-                // ------- TRIVIAL HEURISTIC -------- 
-                int masterNode = i;
-                int selectedNode = msr.bindCol[j]
-
-                // Not possible in our configuration
-                if(selectedNode == masterNode){
-                    newMSR.values[selectedNode] = 1;
-                    break;
+                
+                bool thisIsSelected = false;
+                if(!hasBeenSelected){
+                    masterNode = i;
+                    selectedNode = graph.bindCol[j];
+                    hasBeenSelected = true;
+                    thisIsSelected = true;
                 }
 
-                coarNodesBits[masterNode] = 1;
-                coarNodesBits[selectedNode] = 1;
+                // Insert only whether the node is not been selected
+                if(!thisIsSelected){
+                    newMSR.values.push_back(graph.values[j]);
+                }
+
+            }
+            if(selectedNode == -1){
+                // No merging is possible;
+            }
+            // ------- TRIVIAL HEURISTIC --------
+            
+            // Not possible in our configuration
+            if(selectedNode == masterNode){
+                newMSR.values[selectedNode] = 1;
                 break;
-                // ------- TRIVIAL HEURISTIC --------
+            }
+            int selRowStart = graph.bindCol[selectedNode];
+            int selRowEnd = graph.bindCol[selectedNode+1];
+            
+            // This is possible only with directed graphs
+            bool noMergingNeeded = false;
+            if(selRowStart == -1){
+                // Is an empty row, no values/cols merging needed :)
+                noMergingNeeded = true;
+            }
+            if(selRowEnd == -1){
+                selRowEnd = graph.bindCol[i+2];
+            }
+            // Take all the values and all the columns of thew selected nodes
+            for(int j = selRowStart; j < selRowEnd; j++){
+                
+                
+                // FIND A WAY TO FIGURE HOW TO RESPECT VALUE ORDER AND COLUMN ORDER WHEN YOU MERGE THE VALUES/COLS OF THE TWO MERGING NODES
+                // Maybe is not needed to respect values order, in that case we have to check only if the value is already been inserted
+                int value = graph.values[j];
+                int column = graph.bindCol[j];
+                break;
             }
 
-            // once the groups are builded, build the msr
-            for(auto& group : groups){
-                int chiefNode = group[0];
-                for(int k = 0; k < group.size(); k++){
+            pointerCounter += // NUMBER OF VALUES OR COLS THAT THIS NEW ROW IS GOING TO HAVE
 
-                    graph.
-
-                }
-            }
-
+            coarNodesBits[masterNode] = 1;
+            coarNodesBits[selectedNode] = 1;
         }
 
-        for(int i = 0; i<size; i++){
+        // COPY ALL THE DIAGONAL VALUES (FROM THE END) ON THE VALUE ARRAY DOING A PUSH_FRONT
+        
+        pointerCounter += // THE FINAL DIMENSION OF THE MSR
+        
+        // COPY ALL THE POINTERS (FROM THE END) IN THE BINDCOL ARRAY DOING A PUSH_FRONT
 
-            // COARSENING
-
-            graph.
-
-
-            coarNodesBits[i] = 1;
-
-        }
     }
 
 
